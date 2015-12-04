@@ -58,3 +58,9 @@ plot(lr)
 
 lrp <- rasterize(al, y = lr, field = rep(1, length(lr)), fun = "count")
 plot(lrp)
+# to load it
+load()
+raster
+writeRaster(lrp, filename = "data/lrp_stats19_raster.asc")
+
+save(z, al, lr, lrp, file = "data1.RData")
