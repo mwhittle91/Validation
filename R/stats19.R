@@ -1,6 +1,12 @@
 # devtools::install_github("robinlovelace/stplanr")
 library(stplanr)
 
+dl_stats19()
+data_dir = tempdir()
+ac <- readr::read_csv(file.path(data_dir, "Accidents0514.csv"))
+ac <- ac_recat(ac)
+
+
 ac <- read_stats19_ac()
 ve <- read_stats19_ve()
 ca <- read_stats19_ca()
@@ -10,10 +16,11 @@ ca <- read_stats19_ca()
 all_stats19 <- dplyr::inner_join(ve, ca)
 all_stats19 <- dplyr::inner_join(all_stats19, ac)
 
-downloader::download("https://github.com/npct/pct-data/raw/master/leeds/z.Rds", destfile = "data/z.Rds")
+# downloader::download("https://github.com/npct/pct-data/raw/master/leeds/z.Rds", destfile = "data/z.Rds")
 z <- readRDS("data/z.Rds")
 
 plot(z)
+
 
 all_stats19 <- all_stats19[!is.na(all_stats19$Location_Easting_OSGR),]
 all_stats19 <- data.frame(all_stats19)
@@ -39,3 +46,15 @@ raster::shapefile(al, "data/stats19-lds-cyclists.shp")
 
 plot(al)
 
+# Create raster layer for the aggregation of crashes and model output
+# convert to projected CRS
+al <- spTransform(al, CRS("+init=epsg:27700"))
+z <- spTransform(z, CRS("+init=epsg:27700"))
+library(raster)
+lr <- raster(z, res = 100)
+hasValues(lr)
+lr
+plot(lr)
+
+lrp <- rasterize(al, y = lr, field = rep(1, length(lr)), fun = "count")
+plot(lrp)
